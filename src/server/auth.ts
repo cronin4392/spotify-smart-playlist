@@ -34,13 +34,25 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
-    session: ({ session, token, user }) => {
+    async jwt({ token, account }) {
+      if (account) {
+        token.id = account.id;
+        token.expires_at = account.expires_at;
+        token.accessToken = account.access_token;
+      }
+      return token;
+    },
+    session: ({ session, token }) => {
       return {
         ...session,
         user: {
           ...session.user,
           id: token.sub,
+          accessToken: token.accessToken,
         },
       };
     },
